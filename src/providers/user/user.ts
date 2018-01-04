@@ -4,6 +4,8 @@ import { Injectable } from '@angular/core';
 
 import { Api } from '../api/api';
 
+import { Settings} from '../settings/settings';
+
 /**
  * Most apps have the concept of a User. This is a simple provider
  * with stubs for login/signup/etc.
@@ -27,18 +29,17 @@ import { Api } from '../api/api';
 export class User {
   _user: any;
 
-  constructor(public api: Api) { }
+  constructor(public api: Api, public settings: Settings) { }
 
   /**
    * Send a POST request to our login endpoint with the data
    * the user entered on the form.
    */
   login(accountInfo: any) {
-    let seq = this.api.post('login', accountInfo).share();
-
+    let seq = this.api.post('authenticate', accountInfo).share();
     seq.subscribe((res: any) => {
       // If the API returned a successful response, mark the user as logged in
-      if (res.status == 'success') {
+      if (res.auth_token) {
         this._loggedIn(res);
       } else {
       }
@@ -54,11 +55,10 @@ export class User {
    * the user entered on the form.
    */
   signup(accountInfo: any) {
-    let seq = this.api.post('signup', accountInfo).share();
-
+    let seq = this.api.post('register', accountInfo).share();
     seq.subscribe((res: any) => {
       // If the API returned a successful response, mark the user as logged in
-      if (res.status == 'success') {
+      if (res.auth_token) {
         this._loggedIn(res);
       }
     }, err => {
@@ -69,16 +69,26 @@ export class User {
   }
 
   /**
+   * Returns user token
+   */
+  getUser() {
+    return this.settings.getValue("token");
+  }
+
+  /**
    * Log the user out, which forgets the session
    */
   logout() {
     this._user = null;
+    this.settings.setValue("token", this._user);
   }
 
   /**
    * Process a login/signup response to store user data
    */
   _loggedIn(resp) {
-    this._user = resp.user;
+    this._user = resp.auth_token;
+    console.log(resp.auth_token);
+    this.settings.setValue("token", resp.auth_token);
   }
 }

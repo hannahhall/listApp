@@ -15,11 +15,12 @@ export class Settings {
 
   constructor(public storage: Storage, defaults: any) {
     this._defaults = defaults;
+    this.load();
   }
 
   load() {
     return this.storage.get(this.SETTINGS_KEY).then((value) => {
-      if (value) {
+      if (value) {        
         this.settings = value;
         return this._mergeDefaults(this._defaults);
       } else {
@@ -58,6 +59,7 @@ export class Settings {
   getValue(key: string) {
     return this.storage.get(this.SETTINGS_KEY)
       .then(settings => {
+        console.log("getValue", settings)
         return settings[key];
       });
   }
